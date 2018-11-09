@@ -22,7 +22,17 @@ public class StateNode implements StateNodeInterface{
 
     @Override
     public StateNodeInterface createSuccessor(Move move) {
-        GameBoardInterface successorState = this.gameState.performMove(move);
-        return new StateNode(this, move, successorState);
+        if (this.gameState.isValidMove(move)){
+            GameBoardInterface successorState = this.gameState.performMove(move);
+            return new StateNode(this, move, successorState);
+        }
+        else{
+            return null;
+        }
+    }
+
+    @Override
+    public boolean checkIfGoal(){
+        return this.gameState.isGoalState();
     }
 }

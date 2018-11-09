@@ -48,7 +48,7 @@ public class GameBoard implements GameBoardInterface {
                 if (zeroPosition < this.n) return false;
                 break;
             case LEFT:
-                if (zeroPosition % this.n == this.n) return false;
+                if (zeroPosition % this.n == this.n-1) return false;
                 break;
             case RIGHT:
                 if (zeroPosition % this.n == 0) return false;

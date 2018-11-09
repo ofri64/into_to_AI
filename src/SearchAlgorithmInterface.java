@@ -1,6 +1,6 @@
 public interface SearchAlgorithmInterface {
-    void pefromSearch(StateNodeInterface initialState);
-    String getSoultionPath();
-    int getSoultionCost();
+    boolean performSearch(StateNodeInterface initialState);
+    String getSolutionPath();
+    int getSolutionCost();
     int getNumSearchedNodes();
 }
