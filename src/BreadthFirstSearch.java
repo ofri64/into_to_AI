@@ -15,7 +15,7 @@ public class BreadthFirstSearch extends SearchAlgorithmAbstract {
 
         while (queue.peek() != null){
             StateNodeInterface currentState = queue.poll();
-            this.numSearchedNodes += 1;
+            this.numSearchedNodes++;
 
             if (currentState.checkIfGoal()){
                 this.computeSolutionPath(currentState);
