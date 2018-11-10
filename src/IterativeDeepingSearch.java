@@ -19,7 +19,7 @@ public class IterativeDeepingSearch extends SearchAlgorithmAbstract {
         this.stack.push(initialState);
 
         while (!this.stack.empty()){
-            StateNodeInterface currentState = this.stack.pop();
+            DFSNode currentState = (DFSNode) this.stack.pop();
             this.numSearchedNodes++;
 
             if (currentState.checkIfGoal()){
@@ -29,7 +29,7 @@ public class IterativeDeepingSearch extends SearchAlgorithmAbstract {
             }
             Move[] possibleMoves = {Move.RIGHT, Move.LEFT, Move.DOWN, Move.UP};
             for (Move move: possibleMoves){
-                StateNodeInterface successor = currentState.createSuccessor(move);
+                DFSNode successor = (DFSNode) currentState.createSuccessor(move);
 
                 if (successor != null && successor.getDepth() <= depthLimit){
                     this.stack.push(successor);
