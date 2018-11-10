@@ -3,4 +3,5 @@ public interface StateNodeInterface {
     Move getCreationMove();
     StateNodeInterface createSuccessor(Move move);
     boolean checkIfGoal();
+    GameBoardInterface getGameBoard();
 }

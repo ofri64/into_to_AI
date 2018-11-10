@@ -10,6 +10,9 @@ public abstract class StateNodeAbstract implements StateNodeInterface {
     }
 
     @Override
+    public GameBoardInterface getGameBoard() { return this.gameState; }
+
+    @Override
     public StateNodeInterface getFather() {
         return father;
     }

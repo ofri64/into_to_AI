@@ -15,6 +15,12 @@ public class GameBoard implements GameBoardInterface {
             }
         }
     }
+
+    @Override
+    public int[] getGameBoardArray() {
+        return board;
+    }
+
     private GameBoard(GameBoard gameToCopy){
         this.n = gameToCopy.n;
         this.arrayLength = gameToCopy.arrayLength;
