@@ -11,9 +11,9 @@ public class java_ex1 {
         SearchAlgorithmInterface algorithm = AlgorithmsFactory.runSearchAlgorithm(n, initialArray, algoType);
         System.out.println(algorithm.getSolutionPath() + " " + algorithm.getNumSearchedNodes() + " " + algorithm.getSolutionCost());
 
-        int[] initialArray2 = {1, 0, 3, 4, 2, 6, 7, 5, 8};
-        algorithm = AlgorithmsFactory.runSearchAlgorithm(n, initialArray2, 1);
-        System.out.println(algorithm.getSolutionPath() + " " + algorithm.getNumSearchedNodes() + " " + algorithm.getSolutionCost());
+//        int[] initialArray2 = {1, 0, 3, 4, 2, 6, 7, 5, 8};
+//        algorithm = AlgorithmsFactory.runSearchAlgorithm(n, initialArray2, 1);
+//        System.out.println(algorithm.getSolutionPath() + " " + algorithm.getNumSearchedNodes() + " " + algorithm.getSolutionCost());
 
 //        int n = 3;
 //        int[] initialArray = {1, 2, 3, 4, 5, 6, 7, 8, 0};
@@ -22,5 +22,6 @@ public class java_ex1 {
 //        int score2 = PuzzleHeuristics.ManhattanDistanceScore(new BFSNode(null, null, new GameBoard(n, initialArray2)));
 //        System.out.println(score1);
 //        System.out.println(score2);
+
     }
 }
