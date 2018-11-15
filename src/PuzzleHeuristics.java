@@ -23,7 +23,7 @@ public class PuzzleHeuristics {
         // sum all of them to get the total score for the state
         for (int i=0; i < arrayLength; i++){
             int currentPosition = i;
-            int goalPosition = PuzzleHeuristics.getNumberGoalPosition(arrayLength, gameRawArray[i]);
+            int goalPosition = PuzzleHeuristics.getNumberGoalPosition(currentPosition, gameRawArray[i]);
             totalDistance += getDistanceForPosition(n, currentPosition, goalPosition);
         }
 
@@ -32,13 +32,15 @@ public class PuzzleHeuristics {
 
     /**
      * Compute what is the goal position of a given value of the board
-     * @param arrayLength length of the board data object
+     * @param currentPosition length of the board data object
      * @param numberToCheck current number to check for poistion
      * @return
      */
-    private static int getNumberGoalPosition(int arrayLength, int numberToCheck){
-        if (numberToCheck == 0){ // the empty must be last for goal position
-            return arrayLength-1;
+    private static int getNumberGoalPosition(int currentPosition, int numberToCheck){
+        if (numberToCheck == 0){
+            // the empty place doesn't count as a valid element.
+            // so it's 'goal' position will always be it's current position
+            return currentPosition;
         }
         else {
             return numberToCheck - 1;
