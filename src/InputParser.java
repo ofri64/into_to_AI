@@ -49,7 +49,7 @@ public class InputParser {
             }
         }
         catch (Exception e){
-            System.out.println("The following exception occurred" + e.getMessage());
+            System.out.println("The following exception occurred: " + e.getMessage());
             System.exit(-1); // terminate process
         }
     }

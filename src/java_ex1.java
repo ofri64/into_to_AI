@@ -1,10 +1,12 @@
 public class java_ex1 {
+    public static String INPUT_FILE = "input.txt";
+    public static String OUTPUT_FILE = "output.txt";
 
     public static void main(String[] args) {
 
         // parse program arguments to input and output files
-        String inputFilePath = args[0];
-        String outputFilePath = args[1];
+        String inputFilePath = INPUT_FILE;
+        String outputFilePath = OUTPUT_FILE;
 
         // parse the input file and extract initial arguments for the specified search algorithm
         InputParser parser = new InputParser(inputFilePath);
