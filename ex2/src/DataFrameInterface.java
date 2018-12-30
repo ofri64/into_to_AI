@@ -1,4 +1,4 @@
-public interface DataFrameInterface<E> {
+public interface DataFrameInterface<E> extends Iterable<Series<E>>{
     int getNumRows();
     int getNumCols();
     E getElement(int rowIndex, int colIndex);

@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,4 +35,27 @@ public class Series<E> implements SeriesInterface<E> {
         return this.series.subList(from, to);
     }
 
+    @Override
+    public SeriesInterface<E> getSlice(int from, int to) {
+        return new Series<>(this.getElement(from, to));
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return new SeriesIterator<>(this);
+    }
+
+    @Override
+    public List<Integer> compare(SeriesInterface<E> otherSeries) {
+        List<Integer> comparison = new LinkedList<>();
+        for (int i=0; i < this.getLength(); i++){
+            if (otherSeries.getElement(i).equals(this.getElement(i))){
+                comparison.add(0);
+            }
+            else{
+                comparison.add(1);
+            }
+        }
+        return comparison;
+    }
 }

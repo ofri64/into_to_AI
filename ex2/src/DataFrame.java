@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -93,4 +94,8 @@ public class DataFrame<E> implements DataFrameInterface<E> {
             return new DataFrame<>(this.df.subList(rowFrom, rowTo), this.featuresNames);
     }
 
+    @Override
+    public Iterator<Series<E>> iterator() {
+        return new DataFrameIterator(this);
+    }
 }
