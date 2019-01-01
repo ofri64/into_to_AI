@@ -10,6 +10,8 @@ public class java_ex2 {
         KNN.fit(trainDf);
         KNN.predict(testDf);
         System.out.println(KNN.getAccuracy(testDf));
+
+//        ((KNN<String>) KNN).initiateFeaturesAndLabelsVales(trainDf);
     }
 }
 

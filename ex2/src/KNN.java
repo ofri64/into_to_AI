@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class KNN<E> implements Classifier<E> {
+public class KNN<E> extends AbstractClassifier<E> {
     private int k;
     private DataFrameInterface<E> trainingDataFrame;
     private SeriesInterface<E> predictions;
@@ -19,22 +19,11 @@ public class KNN<E> implements Classifier<E> {
         }
     }
 
-    class KNNNodeComperator implements Comparator<KNNSampleNode>{
+    class KNNNodeComperator implements Comparator<KNNSampleNode> {
         @Override
         public int compare(KNNSampleNode o1, KNNSampleNode o2) {
             return o1.distanceToPoint - o2.distanceToPoint;
         }
-    }
-
-    public E getKeyForMaxValue(Map<E, Integer> countsMap){
-        int maxValueInMap = Collections.max(countsMap.values());
-        for (Map.Entry<E, Integer> mapEntry: countsMap.entrySet()){
-            if (mapEntry.getValue() == maxValueInMap){
-                return mapEntry.getKey();
-            }
-        }
-        // should not happen!
-        return null;
     }
 
     KNN(int k){
@@ -84,7 +73,7 @@ public class KNN<E> implements Classifier<E> {
             }
 
             // sort the list distance nodes using the predefined comperator object
-            Collections.sort(testRowDistances, new KNNNodeComperator());
+            testRowDistances.sort(new KNNNodeComperator());
 
             // count how many accurrences of each class within the first k elements
             for (int i=0; i < this.k; i++){
