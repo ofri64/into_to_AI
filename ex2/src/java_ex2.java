@@ -11,7 +11,11 @@ public class java_ex2 {
         KNN.predict(testDf);
         System.out.println(KNN.getAccuracy(testDf));
 
-//        ((KNN<String>) KNN).initiateFeaturesAndLabelsVales(trainDf);
+        Classifier<String> bayes = new NaiveBayes<>();
+        bayes.fit(trainDf);
+        bayes.predict(testDf);
+        System.out.println(bayes.getAccuracy(testDf));
+
     }
 }
 

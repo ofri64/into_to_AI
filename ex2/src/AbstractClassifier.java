@@ -3,11 +3,12 @@ import java.util.Set;
 import java.util.Map;
 import java.util.HashSet;
 import java.util.HashMap;
-
+import java.util.List;
 
 public abstract class AbstractClassifier<E> implements Classifier<E>{
     protected Set<E> uniqueLabels;
-    protected Map<String, Set<E>> featuresUniqueValues;
+    protected Map<Integer, Set<E>> featuresUniqueValues;
+    protected SeriesInterface<E> predictions;
 
     protected E getKeyForMaxValue(Map<E, Integer> countsMap){
         int maxValueInMap = Collections.max(countsMap.values());
@@ -20,7 +21,7 @@ public abstract class AbstractClassifier<E> implements Classifier<E>{
         return null;
     }
 
-    protected void initiateFeaturesAndLabelsVales(DataFrameInterface<E> df){
+    protected void initiateFeaturesAndLabelsValues(DataFrameInterface<E> df){
         int dfNumCols = df.getNumCols();
         SeriesInterface<E> labels = df.getCol(dfNumCols - 1);
         this.uniqueLabels = this.seriesUniqueValues(labels);
@@ -30,7 +31,7 @@ public abstract class AbstractClassifier<E> implements Classifier<E>{
             SeriesInterface<E> featureColumn = df.getCol(i);
             Set<E> featureUniqueValues = this.seriesUniqueValues(featureColumn);
 
-            this.featuresUniqueValues.put(Integer.toString(i), featureUniqueValues);
+            this.featuresUniqueValues.put(i, featureUniqueValues);
         }
     }
 
@@ -42,4 +43,18 @@ public abstract class AbstractClassifier<E> implements Classifier<E>{
         return uniqueValues;
     }
 
+    public double getAccuracy(DataFrameInterface<E> df) {
+        if (this.predictions == null){
+            this.predict(df);
+        }
+        Series<E> dfLabels = df.getCol(df.getNumCols() - 1);
+        List<Integer> worngPredictionVector = this.predictions.compare(dfLabels);
+        int numSamples = df.getNumRows();
+        int numWrongClassified = 0;
+        for (int comparedClassificaton: worngPredictionVector){
+            numWrongClassified += comparedClassificaton;
+        }
+        double errorRate = (double) numWrongClassified / numSamples;
+        return 1 - errorRate;
+    }
 }

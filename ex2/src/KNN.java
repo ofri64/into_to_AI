@@ -3,18 +3,18 @@ import java.util.*;
 public class KNN<E> extends AbstractClassifier<E> {
     private int k;
     private DataFrameInterface<E> trainingDataFrame;
-    private SeriesInterface<E> predictions;
 
-    class KNNSampleNode<T>{
+    class KNNSampleNode<T> {
         private int distanceToPoint;
         private T originalLabel;
 
-        KNNSampleNode(int distanceToPoint, T originalLabel){
+        KNNSampleNode(int distanceToPoint, T originalLabel) {
             this.distanceToPoint = distanceToPoint;
             this.originalLabel = originalLabel;
 
         }
-        public T getOriginalLabel(){
+
+        public T getOriginalLabel() {
             return this.originalLabel;
         }
     }
@@ -26,7 +26,7 @@ public class KNN<E> extends AbstractClassifier<E> {
         }
     }
 
-    KNN(int k){
+    KNN(int k) {
         this.k = k;
     }
 
@@ -42,19 +42,19 @@ public class KNN<E> extends AbstractClassifier<E> {
     @Override
     public SeriesInterface<E> predict(DataFrameInterface<E> df) {
         List<E> predictions = new LinkedList<>();
-        for (SeriesInterface<E> row: df){
-            SeriesInterface<E> rowFeatures = row.getSlice(0, row.getLength()-1);
+        for (SeriesInterface<E> row : df) {
+            SeriesInterface<E> rowFeatures = row.getSlice(0, row.getLength() - 1);
 
             // init testRowDistances Vector
             List<KNNSampleNode<E>> testRowDistances = new LinkedList<>();
             Map<E, Integer> labelsCounts = new HashMap<>();
 
-            for (SeriesInterface<E> trainingRow:trainingDataFrame){
+            for (SeriesInterface<E> trainingRow : trainingDataFrame) {
                 int trainingRowLength = trainingRow.getLength();
 
                 // divide to features and label
-                SeriesInterface<E> trainingRowFeatures = trainingRow.getSlice(0, trainingRowLength-1);
-                E trainingRowLabel = trainingRow.getElement(trainingRowLength-1);
+                SeriesInterface<E> trainingRowFeatures = trainingRow.getSlice(0, trainingRowLength - 1);
+                E trainingRowLabel = trainingRow.getElement(trainingRowLength - 1);
 
                 // compute distance between two data rows
                 List<Integer> distanceVector = trainingRowFeatures.compare(rowFeatures);
@@ -62,7 +62,7 @@ public class KNN<E> extends AbstractClassifier<E> {
 
                 // sum number of differences between the test data and the training data row
                 int distance = 0;
-                for (int featureDistace: distanceVector){
+                for (int featureDistace : distanceVector) {
                     distance += featureDistace;
                 }
 
@@ -76,13 +76,12 @@ public class KNN<E> extends AbstractClassifier<E> {
             testRowDistances.sort(new KNNNodeComperator());
 
             // count how many accurrences of each class within the first k elements
-            for (int i=0; i < this.k; i++){
+            for (int i = 0; i < this.k; i++) {
                 E label = testRowDistances.get(i).getOriginalLabel();
                 Integer currentLabelCount = labelsCounts.get(label);
-                if (currentLabelCount != null){
+                if (currentLabelCount != null) {
                     labelsCounts.put(label, currentLabelCount + 1);
-                }
-                else {
+                } else {
                     labelsCounts.put(label, 1);
                 }
             }
@@ -91,21 +90,5 @@ public class KNN<E> extends AbstractClassifier<E> {
         }
         this.predictions = new Series<>(predictions);
         return this.predictions;
-    }
-
-    @Override
-    public double getAccuracy(DataFrameInterface<E> df) {
-        if (this.predictions == null){
-            this.predict(df);
-        }
-        Series<E> dfLabels = df.getCol(df.getNumCols() - 1);
-        List<Integer> worngPredictionVector = this.predictions.compare(dfLabels);
-        int numSamples = df.getNumRows();
-        int numWrongClassified = 0;
-        for (int comparedClassificaton: worngPredictionVector){
-            numWrongClassified += comparedClassificaton;
-        }
-        double errorRate = (double) numWrongClassified / numSamples;
-        return 1 - errorRate;
     }
 }
