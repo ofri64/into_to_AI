@@ -2,20 +2,14 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class DataFrame<E> implements DataFrameInterface<E> {
-    protected List<String> featuresNames;
     protected List<Series<E>> df;
 
     public DataFrame(String inputPath) {
         try (BufferedReader br = new BufferedReader(new FileReader(inputPath))) {
             String names = br.readLine(); // first line is feature names;
-            String[] namesTokens = names.split("\t");
-            this.featuresNames = new LinkedList<>(Arrays.asList(namesTokens));
 
             String line = null;
             df = new LinkedList<>();
@@ -43,15 +37,13 @@ public class DataFrame<E> implements DataFrameInterface<E> {
     }
 
     public DataFrame(DataFrame<E> anotherDf) {
-        this.featuresNames = anotherDf.featuresNames;
         this.df = new LinkedList<>();
         for(int i=0; i < anotherDf.getNumRows(); i++){
             this.df.add(anotherDf.getRow(i));
         }
     }
 
-    private DataFrame(List<Series<E>> dfInternalList, List<String> featuresNames){
-        this.featuresNames = featuresNames;
+    private DataFrame(List<Series<E>> dfInternalList){
         this.df = new LinkedList<>();
         for(int i=0; i < dfInternalList.size(); i++){
             Series<E> s = dfInternalList.get(i);
@@ -91,11 +83,24 @@ public class DataFrame<E> implements DataFrameInterface<E> {
 
     @Override
     public DataFrameInterface<E> getSlice(int rowFrom, int rowTo) {
-            return new DataFrame<>(this.df.subList(rowFrom, rowTo), this.featuresNames);
+            return new DataFrame<>(this.df.subList(rowFrom, rowTo));
     }
 
     @Override
     public Iterator<Series<E>> iterator() {
         return new DataFrameIterator(this);
+    }
+
+    @Override
+    public DataFrameInterface<E> filterRowsByColumnValue(int colNum, E value) {
+        List<Series<E>> newDF = new LinkedList<>();
+
+        SeriesInterface<E> desiredColumn = this.getCol(colNum);
+        for (int i=0; i < desiredColumn.getLength(); i++){
+            if (desiredColumn.getElement(i).equals(value)){
+                newDF.add(this.getRow(i));
+            }
+        }
+        return new DataFrame<>(newDF);
     }
 }

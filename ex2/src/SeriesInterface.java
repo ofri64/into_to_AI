@@ -10,5 +10,6 @@ public interface SeriesInterface<E> extends Iterable<E>{
     SeriesInterface<E> getSlice(int from, int to);
     Set<E> getUniqueValues();
     Map<E, Integer> getValueCounts();
+    SeriesInterface<E> filterByValues(E value);
 }
 

@@ -74,4 +74,15 @@ public class Series<E> implements SeriesInterface<E> {
         }
         return labelsCount;
     }
+
+    @Override
+    public SeriesInterface<E> filterByValues(E value) {
+        List<E> newSeries = new LinkedList<>();
+        for (E currentValue: this.series){
+            if (currentValue.equals(value)){
+                newSeries.add(currentValue);
+            }
+        }
+        return new Series<>(newSeries);
+    }
 }
