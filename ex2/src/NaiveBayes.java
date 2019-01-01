@@ -1,4 +1,3 @@
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class NaiveBayes<E> extends AbstractClassifier<E> {
@@ -8,28 +7,25 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
     @Override
     public void fit(DataFrameInterface<E> df) {
         this.initiateFeaturesAndLabelsValues(df);
-        int numSamplesInDataset = df.getNumRows();
+        int numSamplesInDataFrame = df.getNumRows();
         int numFeatures = df.getNumCols() - 1;
         SeriesInterface<E> labelsColumn = df.getCol(numFeatures);
 
         // Compute prior probabilities
-        Map<E, Integer> labelsCounts = new HashMap<>();
-        for (E label: this.uniqueLabels){
-            int numSamplesWithLabel = this.countNumSampleWithLabel(labelsColumn, label);
-            labelsCounts.put(label, numSamplesWithLabel);
-        }
+        Map<E, Integer> labelsCounts = labelsColumn.getValueCounts();
 
         for (E label: this.uniqueLabels){
-            double labelPriorProb = (double) labelsCounts.get(label) / numSamplesInDataset;
+            double labelPriorProb = (double) labelsCounts.get(label) / numSamplesInDataFrame;
             this.labelsPriorProb.put(label, labelPriorProb);
         }
 
         // Compute features given labels probabilities
         Map<String, Integer> featuresAndLabelsCounts = new HashMap<>();
+
         for (int j=0; j < numFeatures; j++){
             SeriesInterface<E> featureColumn = df.getCol(j);
 
-            for (int i=0; i < numSamplesInDataset; i++){
+            for (int i=0; i < numSamplesInDataFrame; i++){
 
                 E featureValue = featureColumn.getElement(i);
                 E labelValue = labelsColumn.getElement(i);
@@ -42,9 +38,11 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
         // Compute probabilities from counts
         for (String key: featuresAndLabelsCounts.keySet()){
             E labelFromKey = (E) key.split("\\|")[1];
+
             int totalLabelCount = labelsCounts.get(labelFromKey);
             int featureLabelCount = featuresAndLabelsCounts.get(key);
             double featureGivenLabelProb = (double) featureLabelCount / totalLabelCount;
+
             featuresGivenLabelsProb.put(key, featureGivenLabelProb);
         }
     }
@@ -62,9 +60,9 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
                 for (E label: this.uniqueLabels){
                     double currentLabelProb = rowLabelsProb.getOrDefault(label, 1.0);
                     String key = value.toString() + "|" + label.toString();
-                    double featureLabelprob = this.featuresGivenLabelsProb.get(key);
+                    double featureLabelProb = this.featuresGivenLabelsProb.get(key);
 
-                    rowLabelsProb.put(label, currentLabelProb * featureLabelprob);
+                    rowLabelsProb.put(label, currentLabelProb * featureLabelProb);
                 }
             }
 
