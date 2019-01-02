@@ -103,4 +103,9 @@ public class DataFrame<E> implements DataFrameInterface<E> {
         }
         return new DataFrame<>(newDF);
     }
+
+    @Override
+    public boolean isEmpty() {
+        return this.df.isEmpty();
+    }
 }

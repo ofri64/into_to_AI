@@ -9,7 +9,12 @@ public class DecisionTree<E>{
     }
 
     private void DecisionTreeLearning(DecisionTree<E>.DecisionTreeNode<E> node, DataFrameInterface<E> df, Map<Integer, Set<E>> possibleAttributes){
-        if (!node.isLeaf && !possibleAttributes.isEmpty()){ // stopping criterion is not met
+        if (node.checkIfLeafNode(df) || possibleAttributes.isEmpty()){
+            node.isLeaf = true;
+            node.prediction = node.getNodePrediction(df);
+        }
+
+        else { // stopping criterion is not met
 
             // Choose best attribute for split
             Map<Integer, Double> attributesInfoGainMap = new HashMap<>();
@@ -36,13 +41,15 @@ public class DecisionTree<E>{
             Set<E> attributeValues = possibleAttributes.get(bestAttribute);
             for (E value: attributeValues){
                 DataFrameInterface<E> splitDf = df.filterRowsByColumnValue(bestAttribute, value);
-                Map<Integer, Set<E>> splitPossibleAttributes = new HashMap<>(possibleAttributes);
-                splitPossibleAttributes.remove(bestAttribute);
-                DecisionTree<E>.DecisionTreeNode<E> splitNode = new DecisionTreeNode<>(bestAttribute, value, splitDf);
+                if (!splitDf.isEmpty()){
+                    Map<Integer, Set<E>> splitPossibleAttributes = new HashMap<>(possibleAttributes);
+                    splitPossibleAttributes.remove(bestAttribute);
+                    DecisionTree<E>.DecisionTreeNode<E> splitNode = new DecisionTreeNode<>(bestAttribute, value, splitDf);
 
-                // continue recursively and append branch to tree
-                DecisionTreeLearning(splitNode, splitDf, splitPossibleAttributes);
-                node.childs.add(splitNode);
+                    // continue recursively and append branch to tree
+                    DecisionTreeLearning(splitNode, splitDf, splitPossibleAttributes);
+                    node.childs.add(splitNode);
+                }
             }
         }
     }
@@ -51,9 +58,11 @@ public class DecisionTree<E>{
         double attributeGain = currentEntropy;
         for (E value: attributePossibleValues){
             DataFrameInterface<E> attributeDf = df.filterRowsByColumnValue(attribute, value);
-            double valueEntropy = this.getLabelsEntropy(attributeDf);
-            double valueProportion = (double) attributeDf.getNumRows() / df.getNumRows();
-            attributeGain -= valueProportion * valueEntropy;
+            if (!attributeDf.isEmpty()){
+                double valueEntropy = this.getLabelsEntropy(attributeDf);
+                double valueProportion = (double) attributeDf.getNumRows() / df.getNumRows();
+                attributeGain -= valueProportion * valueEntropy;
+            }
         }
         return attributeGain;
     }
@@ -83,19 +92,19 @@ public class DecisionTree<E>{
         public DecisionTreeNode(int attributeIndex, E attributeValue, DataFrameInterface<E> df){
             this.attributeIndex = attributeIndex;
             this.attributeValue = attributeValue;
-            this.isLeaf = this.checkIfLeafNode(df);
+            this.isLeaf = false;
             this.isRoot = false;
-            this.prediction = this.getNodePrediction(df);
-
+            this.childs = new LinkedList<>();
         }
 
         public DecisionTreeNode(){
             this.isLeaf = false;
             this.isRoot = true;
+            this.childs = new LinkedList<>();
         }
 
         private boolean checkIfLeafNode(DataFrameInterface<E> df){
-            if (df.getNumRows() == 0){
+            if (df.isEmpty()){
                 return true;
             }
 

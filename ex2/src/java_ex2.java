@@ -16,6 +16,9 @@ public class java_ex2 {
         bayes.predict(testDf);
         System.out.println(bayes.getAccuracy(testDf));
 
+        Classifier<String> decisionTree = new DecisionTreeClassifier<>();
+        decisionTree.fit(trainDf);
+
     }
 }
 
