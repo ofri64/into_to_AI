@@ -18,7 +18,8 @@ public class java_ex2 {
 
         Classifier<String> decisionTree = new DecisionTreeClassifier<>();
         decisionTree.fit(trainDf);
-
+        decisionTree.predict(testDf);
+        System.out.println(decisionTree.getAccuracy(testDf));
     }
 }
 

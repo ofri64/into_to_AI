@@ -1,4 +1,6 @@
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 //
 public class DecisionTreeClassifier<E> extends AbstractClassifier<E> {
@@ -12,6 +14,14 @@ public class DecisionTreeClassifier<E> extends AbstractClassifier<E> {
 
     @Override
     public SeriesInterface<E> predict(DataFrameInterface<E> df) {
-        return null;
+        List<E> predictions = new LinkedList<>();
+
+        for (SeriesInterface<E> row: df) {
+            SeriesInterface<E> rowFeatures = row.getSlice(0, row.getLength() - 1);
+            predictions.add(this.DT.predictForDataSample(rowFeatures));
+        }
+
+        this.predictions = new Series<>(predictions);
+        return this.predictions;
     }
 }

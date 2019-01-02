@@ -1,3 +1,4 @@
+import javax.swing.tree.TreeNode;
 import java.util.*;
 
 public class DecisionTree<E>{
@@ -9,12 +10,13 @@ public class DecisionTree<E>{
     }
 
     private void DecisionTreeLearning(DecisionTree<E>.DecisionTreeNode<E> node, DataFrameInterface<E> df, Map<Integer, Set<E>> possibleAttributes){
-        if (node.checkIfLeafNode(df) || possibleAttributes.isEmpty()){
+        node.prediction = node.getNodePrediction(df);
+
+        if (node.checkIfLeafNode(df) || possibleAttributes.isEmpty()){ // stopping criterion
             node.isLeaf = true;
-            node.prediction = node.getNodePrediction(df);
         }
 
-        else { // stopping criterion is not met
+        else {
 
             // Choose best attribute for split
             Map<Integer, Double> attributesInfoGainMap = new HashMap<>();
@@ -65,6 +67,34 @@ public class DecisionTree<E>{
             }
         }
         return attributeGain;
+    }
+
+    public E predictForDataSample(SeriesInterface<E> row){
+        boolean stopAtCurrentNode = false;
+        DecisionTreeNode<E> currentNode = this.root;
+        while(!stopAtCurrentNode){
+
+            if (currentNode.isLeaf){
+                stopAtCurrentNode = true;
+            }
+
+            else {
+                boolean traversedToNextNode = false;
+                for (DecisionTreeNode<E> childNode: currentNode.childs){
+                    int childNodeIndex = childNode.attributeIndex;
+                    E childNodeValue = childNode.attributeValue;
+                    if (row.getElement(childNodeIndex).equals(childNodeValue)){ // continue traversing the tree
+                        currentNode = childNode;
+                        traversedToNextNode = true;
+                        break;
+                    }
+                }
+                if (!traversedToNextNode){
+                    stopAtCurrentNode = true;
+                }
+            }
+        }
+        return currentNode.prediction;
     }
 
     private double getLabelsEntropy(DataFrameInterface<E> df){
@@ -125,5 +155,4 @@ public class DecisionTree<E>{
             return AbstractClassifier.getKeyForMaxValue(labelsCount);
         }
     }
-
 }
