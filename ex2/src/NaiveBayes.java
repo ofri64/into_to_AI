@@ -1,49 +1,48 @@
 import java.util.*;
 
 public class NaiveBayes<E> extends AbstractClassifier<E> {
-    private Map<E, Double> labelsPriorProb = new HashMap<>();
-    private Map<String, Double> featuresGivenLabelsProb = new HashMap<>();
+    public double lambda;
+    private int numTotalSample = 0;
+    private Map<E, Integer> labelsPriorCounts = new HashMap<>();
+    private Map<String, Integer> featuresGivenLabelCounts = new HashMap<>();
+    private Map<Integer, Integer> featuresNumOfUniqueValues = new HashMap<>();
+
+    public NaiveBayes(double lambda){
+        this.lambda = lambda;
+    }
+
+    public NaiveBayes(){
+        this(1);
+    }
 
     @Override
     public void fit(DataFrameInterface<E> df) {
         this.initiateFeaturesAndLabelsValues(df);
-        int numSamplesInDataFrame = df.getNumRows();
         int numFeatures = df.getNumCols() - 1;
+
+        // Compute labels prior Counter and number of total samples
         SeriesInterface<E> labelsColumn = df.getCol(numFeatures);
+        this.labelsPriorCounts = labelsColumn.getValueCounts();
+        this.numTotalSample = df.getNumRows();
 
-        // Compute prior probabilities
-        Map<E, Integer> labelsCounts = labelsColumn.getValueCounts();
-
-        for (E label: this.uniqueLabels){
-            double labelPriorProb = (double) labelsCounts.get(label) / numSamplesInDataFrame;
-            this.labelsPriorProb.put(label, labelPriorProb);
+        // Compute features unique values
+        for (int i = 0; i < numFeatures; i++) {
+            Set<E> featureUniqueValues = df.getCol(i).getUniqueValues();
+            featuresNumOfUniqueValues.put(i, featureUniqueValues.size());
         }
 
         // Compute features given labels probabilities
-        Map<String, Integer> featuresAndLabelsCounts = new HashMap<>();
-
-        for (int j=0; j < numFeatures; j++){
+        for (int j = 0; j < numFeatures; j++) {
             SeriesInterface<E> featureColumn = df.getCol(j);
 
-            for (int i=0; i < numSamplesInDataFrame; i++){
+            for (int i = 0; i < this.numTotalSample; i++) {
 
                 E featureValue = featureColumn.getElement(i);
                 E labelValue = labelsColumn.getElement(i);
-                String key = featureValue.toString() + "|" + labelValue.toString();
-                int keyCurrentCount = featuresAndLabelsCounts.getOrDefault(key, 0);
-                featuresAndLabelsCounts.put(key, keyCurrentCount + 1);
+                String key = j + "|" + featureValue.toString() + "|" + labelValue.toString();
+                int keyCurrentCount = this.featuresGivenLabelCounts.getOrDefault(key, 0);
+                this.featuresGivenLabelCounts.put(key, keyCurrentCount + 1);
             }
-        }
-
-        // Compute probabilities from counts
-        for (String key: featuresAndLabelsCounts.keySet()){
-            E labelFromKey = (E) key.split("\\|")[1];
-
-            int totalLabelCount = labelsCounts.get(labelFromKey);
-            int featureLabelCount = featuresAndLabelsCounts.get(key);
-            double featureGivenLabelProb = (double) featureLabelCount / totalLabelCount;
-
-            featuresGivenLabelsProb.put(key, featureGivenLabelProb);
         }
     }
 
@@ -52,24 +51,26 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
         List<E> predictions = new LinkedList<>();
 
         for (SeriesInterface<E> row: df) {
+
             SeriesInterface<E> rowFeatures = row.getSlice(0, row.getLength() - 1);
             Map<E, Double> rowLabelsProb = new HashMap<>();
 
-            for (E value: rowFeatures){
+            for (int i=0; i < rowFeatures.getLength(); i++){
+                E featureValue = rowFeatures.getElement(i);
 
                 for (E label: this.uniqueLabels){
-                    double currentLabelProb = rowLabelsProb.getOrDefault(label, 1.0);
-                    String key = value.toString() + "|" + label.toString();
-                    double featureLabelProb = this.featuresGivenLabelsProb.get(key);
+                    double currentProb = rowLabelsProb.getOrDefault(label, 1.0);
 
-                    rowLabelsProb.put(label, currentLabelProb * featureLabelProb);
+                    double ProbValueForGivenLabel = this.predictProbForValueGivenLabel(i, featureValue, label);
+                    rowLabelsProb.put(label, ProbValueForGivenLabel * currentProb);
                 }
             }
 
             // multiply also with prior probabilities
             for (E label: rowLabelsProb.keySet()){
                 double currentLabelProb = rowLabelsProb.getOrDefault(label, 1.0);
-                double priorProb = this.labelsPriorProb.get(label);
+
+                double priorProb = this.predictPriorProbForLabel(label);
                 rowLabelsProb.put(label, currentLabelProb * priorProb);
             }
 
@@ -87,17 +88,21 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
             // add to predictions max prob label
             predictions.add(labelWithMaxProb);
         }
+
         this.predictions = new Series<>(predictions);
         return this.predictions;
     }
 
-    private int countNumSampleWithLabel(SeriesInterface<E> labelsSeries, E label){
-        int numSampleWithLabel = 0;
-        for (E sampleLabel: labelsSeries){
-            if (sampleLabel.equals(label)){
-                numSampleWithLabel++;
-            }
-        }
-        return numSampleWithLabel;
+    private double predictPriorProbForLabel(E label){
+        return (double) this.labelsPriorCounts.get(label) / numTotalSample;
+    }
+
+    private double predictProbForValueGivenLabel(int featureIndex, E featureValue, E givenLabel){
+        int featureNumUniqueValues = this.featuresNumOfUniqueValues.get(featureIndex);
+        String key = featureIndex + "|" + featureValue.toString() + "|" + givenLabel.toString();
+        int featureGivenValueCount = this.featuresGivenLabelCounts.getOrDefault(key, 0);
+        int labelPriorCount = this.labelsPriorCounts.get(givenLabel);
+
+        return (featureGivenValueCount + this.lambda) / (labelPriorCount + featureNumUniqueValues * this.lambda);
     }
 }
