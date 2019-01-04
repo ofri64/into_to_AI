@@ -1,9 +1,9 @@
 import java.util.*;
 
-public class NaiveBayes<E> extends AbstractClassifier<E> {
+public class NaiveBayes extends AbstractClassifier {
     public double lambda;
     private int numTotalSample = 0;
-    private Map<E, Integer> labelsPriorCounts = new HashMap<>();
+    private Map<String, Integer> labelsPriorCounts = new HashMap<>();
     private Map<String, Integer> featuresGivenLabelCounts = new HashMap<>();
     private Map<Integer, Integer> featuresNumOfUniqueValues = new HashMap<>();
 
@@ -16,30 +16,30 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
     }
 
     @Override
-    public void fit(DataFrameInterface<E> df) {
+    public void fit(DataFrameInterface df) {
         this.initiateFeaturesAndLabelsValues(df);
         int numFeatures = df.getNumCols() - 1;
 
         // Compute labels prior Counter and number of total samples
-        SeriesInterface<E> labelsColumn = df.getCol(numFeatures);
+        SeriesInterface labelsColumn = df.getCol(numFeatures);
         this.labelsPriorCounts = labelsColumn.getValueCounts();
         this.numTotalSample = df.getNumRows();
 
         // Compute features unique values
         for (int i = 0; i < numFeatures; i++) {
-            Set<E> featureUniqueValues = df.getCol(i).getUniqueValues();
+            Set featureUniqueValues = df.getCol(i).getUniqueValues();
             featuresNumOfUniqueValues.put(i, featureUniqueValues.size());
         }
 
         // Compute features given labels probabilities
         for (int j = 0; j < numFeatures; j++) {
-            SeriesInterface<E> featureColumn = df.getCol(j);
+            SeriesInterface featureColumn = df.getCol(j);
 
             for (int i = 0; i < this.numTotalSample; i++) {
 
-                E featureValue = featureColumn.getElement(i);
-                E labelValue = labelsColumn.getElement(i);
-                String key = j + "|" + featureValue.toString() + "|" + labelValue.toString();
+                String featureValue = featureColumn.getElement(i);
+                String labelValue = labelsColumn.getElement(i);
+                String key = j + "|" + featureValue + "|" + labelValue;
                 int keyCurrentCount = this.featuresGivenLabelCounts.getOrDefault(key, 0);
                 this.featuresGivenLabelCounts.put(key, keyCurrentCount + 1);
             }
@@ -47,18 +47,18 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
     }
 
     @Override
-    public SeriesInterface<E> predict(DataFrameInterface<E> df) {
-        List<E> predictions = new LinkedList<>();
+    public SeriesInterface predict(DataFrameInterface df) {
+        List<String> predictions = new LinkedList<>();
 
-        for (SeriesInterface<E> row: df) {
+        for (SeriesInterface row: df) {
 
-            SeriesInterface<E> rowFeatures = row.getSlice(0, row.getLength() - 1);
-            Map<E, Double> rowLabelsProb = new HashMap<>();
+            SeriesInterface rowFeatures = row.getSlice(0, row.getLength() - 1);
+            Map<String, Double> rowLabelsProb = new HashMap<>();
 
             for (int i=0; i < rowFeatures.getLength(); i++){
-                E featureValue = rowFeatures.getElement(i);
+                String featureValue = rowFeatures.getElement(i);
 
-                for (E label: this.uniqueLabels){
+                for (String label: this.uniqueLabels){
                     double currentProb = rowLabelsProb.getOrDefault(label, 1.0);
 
                     double ProbValueForGivenLabel = this.predictProbForValueGivenLabel(i, featureValue, label);
@@ -67,7 +67,7 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
             }
 
             // multiply also with prior probabilities
-            for (E label: rowLabelsProb.keySet()){
+            for (String label: rowLabelsProb.keySet()){
                 double currentLabelProb = rowLabelsProb.getOrDefault(label, 1.0);
 
                 double priorProb = this.predictPriorProbForLabel(label);
@@ -75,9 +75,9 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
             }
 
             // find max label with max probability
-            E labelWithMaxProb = null;
+            String labelWithMaxProb = null;
             double maxProb = 0;
-            for (E label: rowLabelsProb.keySet()){
+            for (String label: rowLabelsProb.keySet()){
                 double labelProb = rowLabelsProb.get(label);
                 if (labelProb > maxProb){
                     labelWithMaxProb = label;
@@ -89,17 +89,17 @@ public class NaiveBayes<E> extends AbstractClassifier<E> {
             predictions.add(labelWithMaxProb);
         }
 
-        this.predictions = new Series<>(predictions);
+        this.predictions = new Series(predictions);
         return this.predictions;
     }
 
-    private double predictPriorProbForLabel(E label){
+    private double predictPriorProbForLabel(String label){
         return (double) this.labelsPriorCounts.get(label) / numTotalSample;
     }
 
-    private double predictProbForValueGivenLabel(int featureIndex, E featureValue, E givenLabel){
+    private double predictProbForValueGivenLabel(int featureIndex, String featureValue, String givenLabel){
         int featureNumUniqueValues = this.featuresNumOfUniqueValues.get(featureIndex);
-        String key = featureIndex + "|" + featureValue.toString() + "|" + givenLabel.toString();
+        String key = featureIndex + "|" + featureValue.toString() + "|" + givenLabel;
         int featureGivenValueCount = this.featuresGivenLabelCounts.getOrDefault(key, 0);
         int labelPriorCount = this.labelsPriorCounts.get(givenLabel);
 

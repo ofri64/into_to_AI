@@ -1,25 +1,25 @@
 import java.util.LinkedList;
 import java.util.List;
 //
-public class DecisionTreeClassifier<E> extends AbstractClassifier<E> {
-    private DecisionTree<E> DT;
+public class DecisionTreeClassifier extends AbstractClassifier {
+    private DecisionTree DT;
 
     @Override
-    public void fit(DataFrameInterface<E> df) {
+    public void fit(DataFrameInterface df) {
         this.initiateFeaturesAndLabelsValues(df);
-        DT = new DecisionTree<>(df, this.featuresUniqueValues);
+        DT = new DecisionTree(df, this.featuresUniqueValues);
     }
 
     @Override
-    public SeriesInterface<E> predict(DataFrameInterface<E> df) {
-        List<E> predictions = new LinkedList<>();
+    public SeriesInterface predict(DataFrameInterface df) {
+        List<String> predictions = new LinkedList<>();
 
-        for (SeriesInterface<E> row: df) {
-            SeriesInterface<E> rowFeatures = row.getSlice(0, row.getLength() - 1);
+        for (SeriesInterface row: df) {
+            SeriesInterface rowFeatures = row.getSlice(0, row.getLength() - 1);
             predictions.add(this.DT.predictForDataSample(rowFeatures));
         }
 
-        this.predictions = new Series<>(predictions);
+        this.predictions = new Series(predictions);
         return this.predictions;
     }
 

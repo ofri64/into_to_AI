@@ -1,14 +1,14 @@
 import java.util.*;
 
-public class DecisionTree<E>{
-    public DecisionTreeNode<E> root;
+public class DecisionTree{
+    public DecisionTreeNode root;
 
-    public DecisionTree(DataFrameInterface<E> df, Map<Integer, Set<E>> possibleAttributes){
-        this.root = new DecisionTreeNode<>();
+    public DecisionTree(DataFrameInterface df, Map<Integer, Set<String>> possibleAttributes){
+        this.root = new DecisionTreeNode();
         this.DecisionTreeLearning(this.root, df, possibleAttributes);
     }
 
-    private void DecisionTreeLearning(DecisionTree<E>.DecisionTreeNode<E> node, DataFrameInterface<E> df, Map<Integer, Set<E>> possibleAttributes){
+    private void DecisionTreeLearning(DecisionTree.DecisionTreeNode node, DataFrameInterface df, Map<Integer, Set<String>> possibleAttributes){
         node.prediction = node.getNodePrediction(df);
 
         if (node.checkIfLeafNode(df) || possibleAttributes.isEmpty()){ // stopping criterion
@@ -22,7 +22,7 @@ public class DecisionTree<E>{
             double currentEntropy = getLabelsEntropy(df);
 
             for (int attribute: possibleAttributes.keySet()){
-                Set<E> attributeValues = possibleAttributes.get(attribute);
+                Set<String> attributeValues = possibleAttributes.get(attribute);
                 double attributeGain = this.getAttributeInformationGain(df, attribute, attributeValues, currentEntropy);
 
                 attributesInfoGainMap.put(attribute, attributeGain);
@@ -39,13 +39,13 @@ public class DecisionTree<E>{
             }
 
             // split using the best attribute
-            Set<E> attributeValues = possibleAttributes.get(bestAttribute);
-            for (E value: attributeValues){
-                DataFrameInterface<E> splitDf = df.filterRowsByColumnValue(bestAttribute, value);
+            Set<String> attributeValues = possibleAttributes.get(bestAttribute);
+            for (String value: attributeValues){
+                DataFrameInterface splitDf = df.filterRowsByColumnValue(bestAttribute, value);
                 if (!splitDf.isEmpty()){
-                    Map<Integer, Set<E>> splitPossibleAttributes = new HashMap<>(possibleAttributes);
+                    Map<Integer, Set<String>> splitPossibleAttributes = new HashMap<>(possibleAttributes);
                     splitPossibleAttributes.remove(bestAttribute);
-                    DecisionTree<E>.DecisionTreeNode<E> splitNode = new DecisionTreeNode<>(bestAttribute, value, node.depth + 1);
+                    DecisionTree.DecisionTreeNode splitNode = new DecisionTreeNode(bestAttribute, value, node.depth + 1);
 
                     // continue recursively and append branch to tree
                     DecisionTreeLearning(splitNode, splitDf, splitPossibleAttributes);
@@ -55,10 +55,10 @@ public class DecisionTree<E>{
         }
     }
 
-    private double getAttributeInformationGain(DataFrameInterface<E> df, int attribute, Set<E> attributePossibleValues, double currentEntropy){
+    private double getAttributeInformationGain(DataFrameInterface df, int attribute, Set<String> attributePossibleValues, double currentEntropy){
         double attributeGain = currentEntropy;
-        for (E value: attributePossibleValues){
-            DataFrameInterface<E> attributeDf = df.filterRowsByColumnValue(attribute, value);
+        for (String value: attributePossibleValues){
+            DataFrameInterface attributeDf = df.filterRowsByColumnValue(attribute, value);
             if (!attributeDf.isEmpty()){
                 double valueEntropy = this.getLabelsEntropy(attributeDf);
                 double valueProportion = (double) attributeDf.getNumRows() / df.getNumRows();
@@ -68,9 +68,9 @@ public class DecisionTree<E>{
         return attributeGain;
     }
 
-    public E predictForDataSample(SeriesInterface<E> row){
+    public String predictForDataSample(SeriesInterface row){
         boolean stopAtCurrentNode = false;
-        DecisionTreeNode<E> currentNode = this.root;
+        DecisionTreeNode currentNode = this.root;
         while(!stopAtCurrentNode){
 
             if (currentNode.isLeaf){
@@ -79,9 +79,9 @@ public class DecisionTree<E>{
 
             else {
                 boolean traversedToNextNode = false;
-                for (DecisionTreeNode<E> childNode: currentNode.children){
+                for (DecisionTreeNode childNode: currentNode.children){
                     int childNodeIndex = childNode.attributeIndex;
-                    E childNodeValue = childNode.attributeValue;
+                    String childNodeValue = childNode.attributeValue;
                     if (row.getElement(childNodeIndex).equals(childNodeValue)){ // continue traversing the tree
                         currentNode = childNode;
                         traversedToNextNode = true;
@@ -96,12 +96,12 @@ public class DecisionTree<E>{
         return currentNode.prediction;
     }
 
-    private double getLabelsEntropy(DataFrameInterface<E> df){
-        SeriesInterface<E> labelColumn = df.getCol(df.getNumCols() - 1);
+    private double getLabelsEntropy(DataFrameInterface df){
+        SeriesInterface labelColumn = df.getCol(df.getNumCols() - 1);
         double entropy = 0;
         int numSamples = labelColumn.getLength();
-        Map<E, Integer> labelsCount = labelColumn.getValueCounts();
-        for (E label: labelsCount.keySet()){
+        Map<String, Integer> labelsCount = labelColumn.getValueCounts();
+        for (String label: labelsCount.keySet()){
             int labelCount = labelsCount.get(label);
             double labelProb = (double) labelCount / numSamples;
             entropy += -1 * labelProb * (Math.log(labelProb) / Math.log(2.0));
@@ -111,10 +111,10 @@ public class DecisionTree<E>{
 
     public String outputTreeRepresentation(Map<Integer, String> featuresIndexToNameMapping){
         StringBuilder treeRepr = new StringBuilder();
-        List<DecisionTreeNode<E>> rootChildren = new LinkedList<>(this.root.children);
+        List<DecisionTreeNode> rootChildren = new LinkedList<>(this.root.children);
         this.root.sortTreeNodesListLexi(rootChildren);
 
-        for (DecisionTreeNode<E> child: rootChildren){
+        for (DecisionTreeNode child: rootChildren){
             treeRepr.append(child.outputNodeRepresentation(featuresIndexToNameMapping));
         }
 
@@ -124,15 +124,15 @@ public class DecisionTree<E>{
     }
 
 
-    public class DecisionTreeNode<E>{
+    public class DecisionTreeNode{
         private int attributeIndex;
-        private E attributeValue;
+        private String attributeValue;
         private boolean isLeaf;
-        private E prediction;
-        private List<DecisionTreeNode<E>> children;
+        private String prediction;
+        private List<DecisionTreeNode> children;
         private int depth;
 
-        DecisionTreeNode(int attributeIndex, E attributeValue, int depth){
+        DecisionTreeNode(int attributeIndex, String attributeValue, int depth){
             this.attributeIndex = attributeIndex;
             this.attributeValue = attributeValue;
             this.isLeaf = false;
@@ -146,13 +146,13 @@ public class DecisionTree<E>{
             this.depth = -1;
         }
 
-        private boolean checkIfLeafNode(DataFrameInterface<E> df){
+        private boolean checkIfLeafNode(DataFrameInterface df){
             if (df.isEmpty()){
                 return true;
             }
 
-            SeriesInterface<E> labelsColumn = df.getCol(df.getNumCols() - 1);
-            Set<E> uniqueLabels = labelsColumn.getUniqueValues();
+            SeriesInterface labelsColumn = df.getCol(df.getNumCols() - 1);
+            Set<String> uniqueLabels = labelsColumn.getUniqueValues();
 
             if (uniqueLabels.size() == 1){
                 return true;
@@ -161,9 +161,9 @@ public class DecisionTree<E>{
             return false;
         }
 
-        private E getNodePrediction(DataFrameInterface<E> df){
-            SeriesInterface<E> labelsColumn = df.getCol(df.getNumCols() - 1);
-            Map<E, Integer> labelsCount = labelsColumn.getValueCounts();
+        private String getNodePrediction(DataFrameInterface df){
+            SeriesInterface labelsColumn = df.getCol(df.getNumCols() - 1);
+            Map<String, Integer> labelsCount = labelsColumn.getValueCounts();
 
             return AbstractClassifier.getKeyForMaxValue(labelsCount);
         }
@@ -192,23 +192,18 @@ public class DecisionTree<E>{
             }
 
             attributeDataPrefix.append("\n");
-            List<DecisionTreeNode<E>> nodesChildren = new LinkedList<>(this.children);
+            List<DecisionTreeNode> nodesChildren = new LinkedList<>(this.children);
             sortTreeNodesListLexi(nodesChildren);
 
-            for (DecisionTreeNode<E> child: nodesChildren){
+            for (DecisionTreeNode child: nodesChildren){
                 attributeDataPrefix.append(child.outputNodeRepresentation(featuresIndexToNameMapping));
             }
 
             return attributeDataPrefix.toString();
         }
 
-        private void sortTreeNodesListLexi(List<DecisionTreeNode<E>> nodes){
-            nodes.sort(new Comparator<DecisionTreeNode<E>>() {
-                @Override
-                public int compare(DecisionTreeNode<E> o1, DecisionTreeNode<E> o2) {
-                    return o1.attributeValue.toString().compareTo(o2.attributeValue.toString());
-                }
-            });
+        private void sortTreeNodesListLexi(List<DecisionTreeNode> nodes){
+            nodes.sort((DecisionTreeNode o1, DecisionTreeNode o2) -> o1.attributeValue.compareTo(o2.attributeValue));
         }
     }
 }

@@ -1,20 +1,20 @@
 import java.util.*;
 
-public class KNN<E> extends AbstractClassifier<E> {
+public class KNN extends AbstractClassifier {
     private int k;
-    private DataFrameInterface<E> trainingDataFrame;
+    private DataFrameInterface trainingDataFrame;
 
-    class KNNSampleNode<T> {
+    class KNNSampleNode {
         private int distanceToPoint;
-        private T originalLabel;
+        private String originalLabel;
 
-        KNNSampleNode(int distanceToPoint, T originalLabel) {
+        KNNSampleNode(int distanceToPoint, String originalLabel) {
             this.distanceToPoint = distanceToPoint;
             this.originalLabel = originalLabel;
 
         }
 
-        public T getOriginalLabel() {
+        public String getOriginalLabel() {
             return this.originalLabel;
         }
     }
@@ -35,26 +35,26 @@ public class KNN<E> extends AbstractClassifier<E> {
     }
 
     @Override
-    public void fit(DataFrameInterface<E> df) {
+    public void fit(DataFrameInterface df) {
         this.trainingDataFrame = df;
     }
 
     @Override
-    public SeriesInterface<E> predict(DataFrameInterface<E> df) {
-        List<E> predictions = new LinkedList<>();
-        for (SeriesInterface<E> row : df) {
-            SeriesInterface<E> rowFeatures = row.getSlice(0, row.getLength() - 1);
+    public SeriesInterface predict(DataFrameInterface df) {
+        List<String> predictions = new LinkedList<>();
+        for (SeriesInterface row : df) {
+            SeriesInterface rowFeatures = row.getSlice(0, row.getLength() - 1);
 
             // init testRowDistances Vector
-            List<KNNSampleNode<E>> testRowDistances = new LinkedList<>();
-            Map<E, Integer> labelsCounts = new HashMap<>();
+            List<KNNSampleNode> testRowDistances = new LinkedList<>();
+            Map<String, Integer> labelsCounts = new HashMap<>();
 
-            for (SeriesInterface<E> trainingRow : trainingDataFrame) {
+            for (SeriesInterface trainingRow : trainingDataFrame) {
                 int trainingRowLength = trainingRow.getLength();
 
                 // divide to features and label
-                SeriesInterface<E> trainingRowFeatures = trainingRow.getSlice(0, trainingRowLength - 1);
-                E trainingRowLabel = trainingRow.getElement(trainingRowLength - 1);
+                SeriesInterface trainingRowFeatures = trainingRow.getSlice(0, trainingRowLength - 1);
+                String trainingRowLabel = trainingRow.getElement(trainingRowLength - 1);
 
                 // compute distance between two data rows
                 List<Integer> distanceVector = trainingRowFeatures.compare(rowFeatures);
@@ -67,7 +67,7 @@ public class KNN<E> extends AbstractClassifier<E> {
                 }
 
                 // add node to this data row list
-                KNNSampleNode<E> node = new KNNSampleNode<>(distance, trainingRowLabel);
+                KNNSampleNode node = new KNNSampleNode(distance, trainingRowLabel);
                 testRowDistances.add(node);
 
             }
@@ -77,7 +77,7 @@ public class KNN<E> extends AbstractClassifier<E> {
 
             // count how many accurrences of each class within the first k elements
             for (int i = 0; i < this.k; i++) {
-                E label = testRowDistances.get(i).getOriginalLabel();
+                String label = testRowDistances.get(i).getOriginalLabel();
                 Integer currentLabelCount = labelsCounts.get(label);
                 if (currentLabelCount != null) {
                     labelsCounts.put(label, currentLabelCount + 1);
@@ -86,9 +86,9 @@ public class KNN<E> extends AbstractClassifier<E> {
                 }
             }
             // get label with maximum counts and add it to predictions list
-            predictions.add(this.getKeyForMaxValue(labelsCounts));
+            predictions.add(KNN.getKeyForMaxValue(labelsCounts));
         }
-        this.predictions = new Series<>(predictions);
+        this.predictions = new Series(predictions);
         return this.predictions;
     }
 }

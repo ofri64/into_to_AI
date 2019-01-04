@@ -1,5 +1,5 @@
-public interface Classifier<E> {
-    void fit(DataFrameInterface<E> df);
-    double getAccuracy(DataFrameInterface<E> df);
-    SeriesInterface<E> predict(DataFrameInterface<E> df);
+public interface Classifier {
+    void fit(DataFrameInterface df);
+    double getAccuracy(DataFrameInterface df);
+    SeriesInterface predict(DataFrameInterface df);
 }

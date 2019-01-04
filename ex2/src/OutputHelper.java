@@ -16,21 +16,21 @@ public class OutputHelper {
         return res.toString();
     }
 
-    public static DataFrameInterface<String> createResultsDataFrame(List<SeriesInterface<String>> results, int numSamples){
-        List<SeriesInterface<String>> df = new LinkedList<>();
+    public static DataFrameInterface createResultsDataFrame(List<SeriesInterface> results, int numSamples){
+        List<SeriesInterface> df = new LinkedList<>();
         for (int i=0; i < numSamples; i++){
             List <String> row = new LinkedList<>();
             Integer i_output = i+1;
             row.add(i_output.toString());
 
-            for (SeriesInterface<String> classifierPredictions: results){
+            for (SeriesInterface classifierPredictions: results){
                 row.add(classifierPredictions.getElement(i));
             }
 
-            df.add(new Series<>(row));
+            df.add(new Series(row));
         }
 
-        return new DataFrame<>(df);
+        return new DataFrame(df);
     }
 
     public static boolean writeOutputToFile(String outputFilePath, String output){

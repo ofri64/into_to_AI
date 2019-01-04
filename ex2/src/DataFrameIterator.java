@@ -1,11 +1,11 @@
 import java.util.Iterator;
 
-public class DataFrameIterator<E> implements Iterator<SeriesInterface<E>> {
-    private DataFrameInterface<E> rows;
+public class DataFrameIterator implements Iterator<SeriesInterface> {
+    private DataFrameInterface rows;
     private int currentRow = 0;
     private int numberOfRows;
 
-    public DataFrameIterator(DataFrameInterface<E> df){
+    public DataFrameIterator(DataFrameInterface df){
         this.numberOfRows = df.getNumRows();
         this.rows = df.getSlice(0, this.numberOfRows);
     }
@@ -16,7 +16,7 @@ public class DataFrameIterator<E> implements Iterator<SeriesInterface<E>> {
     }
 
     @Override
-    public SeriesInterface<E> next() {
+    public SeriesInterface next() {
         return rows.getRow(currentRow++);
     }
 }

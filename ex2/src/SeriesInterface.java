@@ -2,15 +2,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface SeriesInterface<E> extends Iterable<E>{
+public interface SeriesInterface extends Iterable{
     int getLength();
-    E getElement(int position);
-    List<E> getElement(int from, int to);
-    List<Integer> compare(SeriesInterface<E> otherSeries);
-    SeriesInterface<E> getSlice(int from, int to);
-    Set<E> getUniqueValues();
-    Map<E, Integer> getValueCounts();
-    SeriesInterface<E> filterByValues(E value);
+    String getElement(int position);
+    List<String> getElement(int from, int to);
+    List<Integer> compare(SeriesInterface otherSeries);
+    SeriesInterface getSlice(int from, int to);
+    Set<String> getUniqueValues();
+    Map<String, Integer> getValueCounts();
+    SeriesInterface filterByValues(String value);
     String printSeries();
 }
 
