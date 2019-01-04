@@ -4,3 +4,6 @@ out/
 
 # ignore DS_Store
 .DS_Store
+
+# ignore text files
+*.txt
