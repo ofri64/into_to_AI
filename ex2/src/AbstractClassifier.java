@@ -45,7 +45,7 @@ public abstract class AbstractClassifier<E> implements Classifier<E>{
         if (this.predictions == null){
             this.predict(df);
         }
-        Series<E> dfLabels = df.getCol(df.getNumCols() - 1);
+        SeriesInterface<E> dfLabels = df.getCol(df.getNumCols() - 1);
         List<Integer> wrongPredictionVector = this.predictions.compare(dfLabels);
         int numSamples = df.getNumRows();
         int numWrongClassified = 0;

@@ -6,7 +6,7 @@ import java.util.*;
 
 public class DataFrame<E> implements DataFrameInterface<E> {
     protected SeriesInterface<String> headerLine;
-    protected List<Series<E>> df;
+    protected List<SeriesInterface<E>> df;
 
     public DataFrame(String inputPath) {
         try (BufferedReader br = new BufferedReader(new FileReader(inputPath))) {
@@ -40,11 +40,11 @@ public class DataFrame<E> implements DataFrameInterface<E> {
         }
     }
 
-    private DataFrame(List<Series<E>> dfInternalList){
+    DataFrame(List<SeriesInterface<E>> listOfRows){
         this.headerLine = null;
         this.df = new LinkedList<>();
-        for (Series<E> s: dfInternalList){
-            this.df.add(new Series<>(s));
+        for (SeriesInterface<E> s: listOfRows){
+            this.df.add(s);
         }
     }
 
@@ -66,14 +66,14 @@ public class DataFrame<E> implements DataFrameInterface<E> {
     @Override
     public Series<E> getCol(int columnIndex) {
         List<E> col = new LinkedList<>();
-        for (Series<E> series : df) {
+        for (SeriesInterface<E> series : df) {
             col.add(series.getElement(columnIndex));
         }
         return new Series<>(col);
     }
 
     @Override
-    public Series<E> getRow(int rowIndex) {
+    public SeriesInterface<E> getRow(int rowIndex) {
         return new Series<>(this.df.get(rowIndex));
     }
 
@@ -83,13 +83,13 @@ public class DataFrame<E> implements DataFrameInterface<E> {
     }
 
     @Override
-    public Iterator<Series<E>> iterator() {
+    public Iterator<SeriesInterface<E>> iterator() {
         return new DataFrameIterator(this);
     }
 
     @Override
     public DataFrameInterface<E> filterRowsByColumnValue(int colNum, E value) {
-        List<Series<E>> newDF = new LinkedList<>();
+        List<SeriesInterface<E>> newDF = new LinkedList<>();
 
         SeriesInterface<E> desiredColumn = this.getCol(colNum);
         for (int i=0; i < desiredColumn.getLength(); i++){
@@ -107,5 +107,26 @@ public class DataFrame<E> implements DataFrameInterface<E> {
 
     public SeriesInterface<String> getHeaderLine() {
         return this.headerLine;
+    }
+
+    @Override
+    public void setHeaderRow(SeriesInterface<String> headerRow) {
+        this.headerLine = headerRow;
+    }
+
+    @Override
+    public String printDataFrame() {
+        StringBuilder print = new StringBuilder();
+        if (this.headerLine != null){
+            print.append(this.headerLine.printSeries());
+        }
+
+        for (SeriesInterface<E> row: this.df){
+            print.append(row.printSeries());
+        }
+
+        // delete last end of line to avoid empty row
+        print.deleteCharAt(print.length() - 1);
+        return print.toString();
     }
 }

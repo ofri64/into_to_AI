@@ -13,8 +13,8 @@ public class Series<E> implements SeriesInterface<E> {
         this.series.addAll(elements);
     }
 
-    public Series(Series<E> s) {
-        this(s.series);
+    public Series(SeriesInterface<E> s) {
+        this.series = new LinkedList<>(s.getElement(0 ,s.getLength()));
     }
 
     @Override
@@ -84,5 +84,20 @@ public class Series<E> implements SeriesInterface<E> {
             }
         }
         return new Series<>(newSeries);
+    }
+
+    @Override
+    public String printSeries() {
+        StringBuilder print = new StringBuilder();
+
+        for (E value : this.series) {
+            print.append(value);
+            print.append("\t");
+        }
+
+        // delete last tab and add end of line char
+        print.deleteCharAt(print.length() - 1);
+        print.append("\n");
+        return print.toString();
     }
 }
