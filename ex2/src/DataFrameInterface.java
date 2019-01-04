@@ -7,4 +7,6 @@ public interface DataFrameInterface<E> extends Iterable<Series<E>>{
     DataFrameInterface<E> getSlice(int rowFrom, int rowTo);
     DataFrameInterface<E> filterRowsByColumnValue(int colNum, E value);
     boolean isEmpty();
+    SeriesInterface<String> getHeaderLine();
+    String printDataFrame();
 }

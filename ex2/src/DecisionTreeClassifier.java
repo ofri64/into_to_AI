@@ -1,7 +1,5 @@
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 //
 public class DecisionTreeClassifier<E> extends AbstractClassifier<E> {
     private DecisionTree<E> DT;
@@ -23,5 +21,9 @@ public class DecisionTreeClassifier<E> extends AbstractClassifier<E> {
 
         this.predictions = new Series<>(predictions);
         return this.predictions;
+    }
+
+    public String outputTree(){
+        return this.DT.outputTreeRepresentation(this.featuresIndexToNameMapping);
     }
 }

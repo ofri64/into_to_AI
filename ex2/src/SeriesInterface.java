@@ -11,5 +11,6 @@ public interface SeriesInterface<E> extends Iterable<E>{
     Set<E> getUniqueValues();
     Map<E, Integer> getValueCounts();
     SeriesInterface<E> filterByValues(E value);
+    String printSeries();
 }
 

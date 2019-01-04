@@ -1,11 +1,10 @@
-import javax.swing.tree.TreeNode;
 import java.util.*;
 
 public class DecisionTree<E>{
     public DecisionTreeNode<E> root;
 
     public DecisionTree(DataFrameInterface<E> df, Map<Integer, Set<E>> possibleAttributes){
-        this.root = new DecisionTreeNode<E>();
+        this.root = new DecisionTreeNode<>();
         this.DecisionTreeLearning(this.root, df, possibleAttributes);
     }
 
@@ -46,11 +45,11 @@ public class DecisionTree<E>{
                 if (!splitDf.isEmpty()){
                     Map<Integer, Set<E>> splitPossibleAttributes = new HashMap<>(possibleAttributes);
                     splitPossibleAttributes.remove(bestAttribute);
-                    DecisionTree<E>.DecisionTreeNode<E> splitNode = new DecisionTreeNode<>(bestAttribute, value, splitDf);
+                    DecisionTree<E>.DecisionTreeNode<E> splitNode = new DecisionTreeNode<>(bestAttribute, value, node.depth + 1);
 
                     // continue recursively and append branch to tree
                     DecisionTreeLearning(splitNode, splitDf, splitPossibleAttributes);
-                    node.childs.add(splitNode);
+                    node.children.add(splitNode);
                 }
             }
         }
@@ -80,7 +79,7 @@ public class DecisionTree<E>{
 
             else {
                 boolean traversedToNextNode = false;
-                for (DecisionTreeNode<E> childNode: currentNode.childs){
+                for (DecisionTreeNode<E> childNode: currentNode.children){
                     int childNodeIndex = childNode.attributeIndex;
                     E childNodeValue = childNode.attributeValue;
                     if (row.getElement(childNodeIndex).equals(childNodeValue)){ // continue traversing the tree
@@ -110,27 +109,41 @@ public class DecisionTree<E>{
         return entropy;
     }
 
+    public String outputTreeRepresentation(Map<Integer, String> featuresIndexToNameMapping){
+        StringBuilder treeRepr = new StringBuilder();
+        List<DecisionTreeNode<E>> rootChildren = new LinkedList<>(this.root.children);
+        this.root.sortTreeNodesListLexi(rootChildren);
+
+        for (DecisionTreeNode<E> child: rootChildren){
+            treeRepr.append(child.outputNodeRepresentation(featuresIndexToNameMapping));
+        }
+
+        // deleter last \n to avoid empty line at the end of file
+        treeRepr.deleteCharAt(treeRepr.length() - 1);
+        return treeRepr.toString();
+    }
+
 
     public class DecisionTreeNode<E>{
         private int attributeIndex;
         private E attributeValue;
         private boolean isLeaf;
-        private boolean isRoot;
         private E prediction;
-        private List<DecisionTreeNode<E>> childs;
+        private List<DecisionTreeNode<E>> children;
+        private int depth;
 
-        public DecisionTreeNode(int attributeIndex, E attributeValue, DataFrameInterface<E> df){
+        DecisionTreeNode(int attributeIndex, E attributeValue, int depth){
             this.attributeIndex = attributeIndex;
             this.attributeValue = attributeValue;
             this.isLeaf = false;
-            this.isRoot = false;
-            this.childs = new LinkedList<>();
+            this.children = new LinkedList<>();
+            this.depth = depth;
         }
 
-        public DecisionTreeNode(){
+        DecisionTreeNode(){
             this.isLeaf = false;
-            this.isRoot = true;
-            this.childs = new LinkedList<>();
+            this.children = new LinkedList<>();
+            this.depth = -1;
         }
 
         private boolean checkIfLeafNode(DataFrameInterface<E> df){
@@ -153,6 +166,49 @@ public class DecisionTree<E>{
             Map<E, Integer> labelsCount = labelsColumn.getValueCounts();
 
             return AbstractClassifier.getKeyForMaxValue(labelsCount);
+        }
+
+        private String outputNodeRepresentation(Map<Integer, String> featuresIndexToNameMapping){
+            String attributeName = featuresIndexToNameMapping.get(this.attributeIndex);
+            StringBuilder attributeDataPrefix = new StringBuilder();
+
+            for (int i=0; i < Math.max(0, this.depth); i++){
+                attributeDataPrefix.append("\t");
+            }
+
+            if (this.depth > 0){
+                attributeDataPrefix.append("|");
+            }
+
+            attributeDataPrefix.append(attributeName);
+            attributeDataPrefix.append("=");
+            attributeDataPrefix.append(this.attributeValue);
+
+            if (this.isLeaf){
+                attributeDataPrefix.append(":");
+                attributeDataPrefix.append(this.prediction);
+                attributeDataPrefix.append("\n");
+                return attributeDataPrefix.toString();
+            }
+
+            attributeDataPrefix.append("\n");
+            List<DecisionTreeNode<E>> nodesChildren = new LinkedList<>(this.children);
+            sortTreeNodesListLexi(nodesChildren);
+
+            for (DecisionTreeNode<E> child: nodesChildren){
+                attributeDataPrefix.append(child.outputNodeRepresentation(featuresIndexToNameMapping));
+            }
+
+            return attributeDataPrefix.toString();
+        }
+
+        private void sortTreeNodesListLexi(List<DecisionTreeNode<E>> nodes){
+            nodes.sort(new Comparator<DecisionTreeNode<E>>() {
+                @Override
+                public int compare(DecisionTreeNode<E> o1, DecisionTreeNode<E> o2) {
+                    return o1.attributeValue.toString().compareTo(o2.attributeValue.toString());
+                }
+            });
         }
     }
 }

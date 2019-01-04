@@ -5,11 +5,15 @@ import java.io.IOException;
 import java.util.*;
 
 public class DataFrame<E> implements DataFrameInterface<E> {
+    protected SeriesInterface<String> headerLine;
     protected List<Series<E>> df;
 
     public DataFrame(String inputPath) {
         try (BufferedReader br = new BufferedReader(new FileReader(inputPath))) {
             String names = br.readLine(); // first line is feature names;
+            String[] headTokens = names.split("\t");
+            this.headerLine = new Series<>(headTokens);
+
 
             String line = null;
             df = new LinkedList<>();
@@ -36,20 +40,12 @@ public class DataFrame<E> implements DataFrameInterface<E> {
         }
     }
 
-    public DataFrame(DataFrame<E> anotherDf) {
-        this.df = new LinkedList<>();
-        for(int i=0; i < anotherDf.getNumRows(); i++){
-            this.df.add(anotherDf.getRow(i));
-        }
-    }
-
     private DataFrame(List<Series<E>> dfInternalList){
+        this.headerLine = null;
         this.df = new LinkedList<>();
-        for(int i=0; i < dfInternalList.size(); i++){
-            Series<E> s = dfInternalList.get(i);
+        for (Series<E> s: dfInternalList){
             this.df.add(new Series<>(s));
         }
-
     }
 
     @Override
@@ -107,5 +103,9 @@ public class DataFrame<E> implements DataFrameInterface<E> {
     @Override
     public boolean isEmpty() {
         return this.df.isEmpty();
+    }
+
+    public SeriesInterface<String> getHeaderLine() {
+        return this.headerLine;
     }
 }

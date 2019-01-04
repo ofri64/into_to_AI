@@ -20,6 +20,9 @@ public class java_ex2 {
         decisionTree.fit(trainDf);
         decisionTree.predict(testDf);
         System.out.println(decisionTree.getAccuracy(testDf));
+
+        String treeOutput = ((DecisionTreeClassifier<String>) decisionTree).outputTree();
+        System.out.println(treeOutput);
     }
 }
 

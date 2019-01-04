@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public abstract class AbstractClassifier<E> implements Classifier<E>{
+    protected Map<Integer, String> featuresIndexToNameMapping;
     protected Set<E> uniqueLabels;
     protected Map<Integer, Set<E>> featuresUniqueValues;
     protected SeriesInterface<E> predictions;
@@ -32,6 +33,12 @@ public abstract class AbstractClassifier<E> implements Classifier<E>{
 
             this.featuresUniqueValues.put(i, featureUniqueValues);
         }
+
+        this.featuresIndexToNameMapping = new HashMap<>();
+        SeriesInterface<String> header = df.getHeaderLine();
+        for (int i=0; i < header.getLength() - 1; i++){
+            this.featuresIndexToNameMapping.put(i, header.getElement(i));
+        }
     }
 
     public double getAccuracy(DataFrameInterface<E> df) {
@@ -39,11 +46,11 @@ public abstract class AbstractClassifier<E> implements Classifier<E>{
             this.predict(df);
         }
         Series<E> dfLabels = df.getCol(df.getNumCols() - 1);
-        List<Integer> worngPredictionVector = this.predictions.compare(dfLabels);
+        List<Integer> wrongPredictionVector = this.predictions.compare(dfLabels);
         int numSamples = df.getNumRows();
         int numWrongClassified = 0;
-        for (int comparedClassificaton: worngPredictionVector){
-            numWrongClassified += comparedClassificaton;
+        for (int comparedClassification: wrongPredictionVector){
+            numWrongClassified += comparedClassification;
         }
         double errorRate = (double) numWrongClassified / numSamples;
         return 1 - errorRate;
