@@ -1,17 +1,16 @@
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.List;
 
 public class OutputHelper {
     public static String printFormattedAccuracy(double[] accuracies){
         StringBuilder res = new StringBuilder();
-        DecimalFormat f = new DecimalFormat("#.##");
         for (Double accuracy: accuracies){
             res.append("\t");
-            res.append(f.format(accuracy));
+            double roundedAccuracy = Math.ceil(accuracy * 100.0) / 100.0;
+            res.append(roundedAccuracy);
         }
         return res.toString();
     }
