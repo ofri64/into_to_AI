@@ -9,10 +9,16 @@ public class DecisionTree{
     }
 
     private void DecisionTreeLearning(DecisionTree.DecisionTreeNode node, DataFrameInterface df, Map<Integer, Set<String>> possibleAttributes){
-        node.prediction = node.getNodePrediction(df);
-
         if (node.checkIfLeafNode(df) || possibleAttributes.isEmpty()){ // stopping criterion
             node.isLeaf = true;
+
+            if (!df.isEmpty()){
+                node.prediction = node.getNodePrediction(df);
+            }
+            else {
+                node.prediction = node.defaultPrediction;
+            }
+
         }
 
         else {
@@ -42,15 +48,14 @@ public class DecisionTree{
             Set<String> attributeValues = possibleAttributes.get(bestAttribute);
             for (String value: attributeValues){
                 DataFrameInterface splitDf = df.filterRowsByColumnValue(bestAttribute, value);
-                if (!splitDf.isEmpty()){
-                    Map<Integer, Set<String>> splitPossibleAttributes = new HashMap<>(possibleAttributes);
-                    splitPossibleAttributes.remove(bestAttribute);
-                    DecisionTree.DecisionTreeNode splitNode = new DecisionTreeNode(bestAttribute, value, node.depth + 1);
+                Map<Integer, Set<String>> splitPossibleAttributes = new HashMap<>(possibleAttributes);
+                splitPossibleAttributes.remove(bestAttribute);
+                String childDefaultPrediction = node.getNodePrediction(df);
+                DecisionTree.DecisionTreeNode splitNode = new DecisionTreeNode(bestAttribute, value, node.depth + 1, childDefaultPrediction);
 
-                    // continue recursively and append branch to tree
-                    DecisionTreeLearning(splitNode, splitDf, splitPossibleAttributes);
-                    node.children.add(splitNode);
-                }
+                // continue recursively and append branch to tree
+                DecisionTreeLearning(splitNode, splitDf, splitPossibleAttributes);
+                node.children.add(splitNode);
             }
         }
     }
@@ -129,15 +134,17 @@ public class DecisionTree{
         private String attributeValue;
         private boolean isLeaf;
         private String prediction;
+        private String defaultPrediction;
         private List<DecisionTreeNode> children;
         private int depth;
 
-        DecisionTreeNode(int attributeIndex, String attributeValue, int depth){
+        DecisionTreeNode(int attributeIndex, String attributeValue, int depth, String defaultPrediction){
             this.attributeIndex = attributeIndex;
             this.attributeValue = attributeValue;
             this.isLeaf = false;
             this.children = new LinkedList<>();
             this.depth = depth;
+            this.defaultPrediction = defaultPrediction;
         }
 
         DecisionTreeNode(){
